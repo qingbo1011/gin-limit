@@ -1,8 +1,8 @@
 package route
 
 import (
+	"gin-limited/api"
 	"gin-limited/middreware"
-	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -15,30 +15,17 @@ func NewRouter() *gin.Engine {
 
 	unlimited := r.Group("/unlimited")
 	{
-		unlimited.GET("/", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
-				"msg": "没有使用限流",
-			})
-		})
-
+		unlimited.GET("/", api.Unlimited)
 	}
 
 	limit1 := r.Group("/limit1").Use(middreware.RateLimit())
 	{
-		limit1.GET("/", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
-				"msg": "中间件1：使用RateLimit进行限流",
-			})
-		})
+		limit1.GET("/", api.LimitedByRateLimit)
 	}
 
 	limit2 := r.Group("/limit2").Use(middreware.MaxAllowed(1000))
 	{
-		limit2.GET("/", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
-				"msg": "中间件2：使用MaxAllowed进行限流",
-			})
-		})
+		limit2.GET("/", api.LimitedByMaxAllowed)
 	}
 
 	limit3 := r.Group("/limit3").Use(middreware.NewRateLimiter(func(c *gin.Context) string {
@@ -51,20 +38,12 @@ func NewRouter() *gin.Engine {
 		return
 	}))
 	{
-		limit3.GET("/", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
-				"msg": "中间件3：使用NewRateLimiter进行限流",
-			})
-		})
+		limit3.GET("/", api.LimitedByNewRateLimiter)
 	}
 
 	limit4 := r.Group("/limit4").Use(middreware.Throttle(1000, 20))
 	{
-		limit4.GET("/", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
-				"msg": "中间件4：使用Throttle进行限流",
-			})
-		})
+		limit4.GET("/", api.LimitedByThrottle)
 	}
 
 	return r
